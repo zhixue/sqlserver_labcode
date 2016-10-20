@@ -1,0 +1,56 @@
+create database study
+
+-------[after create study]----
+
+use study  
+GO
+create table Student(
+Sno  char(10) primary key,
+Sname nvarchar(10),
+Ssex nchar(1) check(Ssex in('男','女')),
+birthday date,
+class nvarchar(10),
+)
+
+create table Teacher(
+tno char(10) primary key,
+name nvarchar(10),
+sex nchar(1) check(sex in('男','女')),
+prof nvarchar(15),
+depart nvarchar(15),
+salary float check(salary>0)
+)
+
+create table Course(
+Cno char(10) primary key,
+Cname nvarchar(10),
+Cpno char(10),
+ccredit float check(ccredit>0),
+tno char(10) foreign key references Teacher(tno)
+)
+
+create table Score(
+Sno char(10) foreign key references Student(Sno),
+Cno char(10) foreign key references Course(Cno),
+Grade int check(Grade>=0 and Grade<=100),
+primary key(Sno,Cno)
+)
+
+
+insert into Student values
+('1458137625','张全蛋','男','1992-10-5','土木大一1班'),
+('1458147125','李晓花','女','1993-3-15','土木大一4班')
+
+insert into Teacher values
+('0000012846','饶毅','男','教授','生命科学院',45000),
+('0000014741','芭芭拉·利斯科夫','女','教授','计算机学院',51000)
+
+insert into Course values
+('1111148624','数据结构','1111148774',4.5,'0000014741'),
+('1111181397','发育神经生物学','1111181254',3,'0000012846')
+
+
+insert into Score values
+('1458137625','1111148624',87),
+('1458137625','1111181397',95),
+('1458147125','1111148624',53)
