@@ -1,0 +1,83 @@
+----lab2 SQL----
+
+--create database study
+--GO
+--use study  
+--GO
+
+--1
+create table Student(
+Sno  char(10) primary key,
+Sname nvarchar(10),
+Ssex nchar(1) check(Ssex in('男','女')),
+birthday date,
+class nvarchar(10),
+)
+
+--4
+create table Teacher(
+tno char(10) primary key,
+name nvarchar(10),
+sex nchar(1) check(sex in('男','女')),
+prof nvarchar(15),
+depart nvarchar(15) deflaut NULL,
+salary float,
+constraint ck_sly check(case when prof='教授' then salary>10000 when prof='副教授' then salary>8000 else salary>0 end)
+)
+
+--2
+create table Course(
+Cno char(10) primary key,
+Cname nvarchar(10),
+Cpno char(10),
+Ccredit float deflaut 0,
+tno char(10) foreign key references Teacher(tno)
+)
+
+
+--3
+create table Score(
+Sno char(10) foreign key references Student(Sno),
+Cno char(10) foreign key references Course(Cno),
+Grade int,
+primary key(Sno,Cno),check(Grade>=0 and Grade<=100 or Grade is NULL) deflaut NULL 
+)
+
+--5
+alter table Course add 开设学期 char(5)
+alter table Score add 考试状态 check(考试状态 in('正常','旷考','缓考','无资格') ) deflaut NULL
+alter table Score add constraint ck_Grade check(case when 考试状态='正常' then Grade>0 when 考试状态='旷考' then Grade=0 else Grade is NULL end)
+
+--6
+alter table Teacher drop constraint ck_sly
+
+--7
+
+--8
+select distinct salary from Teacher
+
+--9
+select distinct class from Student
+
+--10
+select Course.开设学期,Teacher.name from Course,Teacher
+where Course.Cname='xxxxx' and Course.Cno=Teacher.Cno
+
+--11
+select Course.name,Score.Grade,Teacher.name from Teacher,Course,Score
+where Score.Sno='xxxxx' and Score.Cno=Course.Cno and Course.tno=Teacher.tno
+
+--12  
+select Student.Sname from Student,Score
+where Cno='xxxxx' and Student.Sno=Score.Sno and (Score.Grade is NULL or Score.Grade<60)
+
+--13
+select Student.Sname from Student,Score
+where Score.Cno='xxxxx' and Student.Ssex='男' and substring(Student.Sname,1,1)='张'
+
+--14
+select Student.Sname from Student,Score
+where Score.Cno='xxxxx' and Score.Grade>0
+
+--15
+select 
