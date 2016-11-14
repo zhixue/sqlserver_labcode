@@ -20,9 +20,9 @@ tno char(10) primary key,
 name nvarchar(10),
 sex nchar(1) check(sex in('男','女')),
 prof nvarchar(15),
-depart nvarchar(15) deflaut NULL,
+depart nvarchar(15) NULL,
 salary float,
-constraint ck_sly check(case when prof='教授' then salary>10000 when prof='副教授' then salary>8000 else salary>0 end)
+constraint ck_sly check((prof='教授' and salary>10000) or (prof='副教授' and salary>8000) and salary>0)
 )
 
 --2
