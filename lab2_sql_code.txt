@@ -30,23 +30,24 @@ create table Course(
 Cno char(10) primary key,
 Cname nvarchar(10),
 Cpno char(10),
-Ccredit float deflaut 0,
+Ccredit float default 0,
 tno char(10) foreign key references Teacher(tno)
 )
-
 
 --3
 create table Score(
 Sno char(10) foreign key references Student(Sno),
 Cno char(10) foreign key references Course(Cno),
 Grade int,
-primary key(Sno,Cno),check(Grade>=0 and Grade<=100 or Grade is NULL) deflaut NULL 
+primary key(Sno,Cno),check(Grade>=0 and Grade<=100 or Grade is NULL) 
 )
 
 --5
-alter table Course add 开设学期 char(5)
-alter table Score add 考试状态 check(考试状态 in('正常','旷考','缓考','无资格') ) deflaut NULL
-alter table Score add constraint ck_Grade check(case when 考试状态='正常' then Grade>0 when 考试状态='旷考' then Grade=0 else Grade is NULL end)
+alter table Course add 开设学期 char(20)
+GO
+alter table Score add 考试状态  nvarchar(5) check(考试状态 in('正常','旷考','缓考','无资格') ) default NULL
+GO
+alter table Score add constraint ck_Grade check((考试状态='正常' and Grade>0) or (考试状态='旷考' and Grade=0) or ((考试状态='缓考'or 考试状态='无资格')and Grade is NULL))
 
 --6
 alter table Teacher drop constraint ck_sly
