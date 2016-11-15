@@ -5,7 +5,7 @@
 --use study  
 --GO
 
---1
+--1创建学生表：Student(Sno,Sname,Ssex,birthday,class)Student由学号(Sno)、姓名(Sname)、性别(Ssex)、生日(birthday)、班级(class)五个属性组成，其中Sno为主码。Ssex约束为“男”或“女”;
 create table Student(
 Sno  char(10) primary key,
 Sname nvarchar(10),
@@ -14,7 +14,8 @@ birthday date,
 class nvarchar(10),
 )
 
---4
+
+--4教师表：Teacher(tno,name,sex,prof,depart,salary）Teacher由教师号( tno)、教师名(name)、性别(sex)、职称(prof)、部门(depart)、薪酬(salary)六个属性组成，主码为(tno), 性别(sex)约束为“男”或“女”，要求教授的薪酬>10000元，副教授薪酬>8000元，部门允许空值。
 create table Teacher(
 tno char(10) primary key,
 name nvarchar(10),
@@ -25,7 +26,8 @@ salary float,
 constraint ck_sly check((prof='教授' and salary>10000) or (prof='副教授' and salary>8000) and salary>0)
 )
 
---2
+
+--2创建课程表：Course(Cno,Cname,Cpno,Ccredit, tno)Course由课程号(Cno)、课程名(Cname)、先修课号(Cpno)、学分(Ccredit)、任课教师号(tno)五个属性组成，其中Cno为主码，任课教师号(tno)为外码。Ccredit默认值为0; 一门相同课程名允许有多个不同老师分别承担，但课程号不同。一位老师允许承担多门课程。
 create table Course(
 Cno char(10) primary key,
 Cname nvarchar(10),
@@ -34,7 +36,8 @@ Ccredit float default 0,
 tno char(10) foreign key references Teacher(tno)
 )
 
---3
+
+--3学生选课表：Score(Sno,Cno,Grade）SC由学号(Sno)、课程号(Cno)、成绩(Grade)三个属性组成，主码为(Sno,Cno)，Cno和Sno为外码，成绩默认值为0~100，允许空值。
 create table Score(
 Sno char(10) foreign key references Student(Sno),
 Cno char(10) foreign key references Course(Cno),
@@ -42,43 +45,143 @@ Grade int,
 primary key(Sno,Cno),check(Grade>=0 and Grade<=100 or Grade is NULL) 
 )
 
---5
-alter table Course add 开设学期 char(20)
-GO
+
+--5课程表Course 增加一个属性“开设学期”，选课表Score中增加一个属性“考试状态”，取值约束为“正常”，“旷考”，“缓考”，“无资格”之一。考试状态正常时成绩大于等于0，旷考时成绩等于0，缓考或无资格时成绩为空值。
+alter table Course add 开设学期 nvarchar(20)
+--GO
 alter table Score add 考试状态  nvarchar(5) check(考试状态 in('正常','旷考','缓考','无资格') ) default NULL
-GO
+--GO
 alter table Score add constraint ck_Grade check((考试状态='正常' and Grade>0) or (考试状态='旷考' and Grade=0) or ((考试状态='缓考'or 考试状态='无资格')and Grade is NULL))
 
---6
+
+--6删除教师表Teacher中关于薪酬的约束。
 alter table Teacher drop constraint ck_sly
 
---7
 
---8
+
+--7对四个表，插入多行完整的记录。（记录数目适当多一些，能够体现表的数据关系模型，便于下面的查询计算）
+
+
+
+--8查询教师表Teacher中所有薪酬值。
 select distinct salary from Teacher
 
---9
+
+--9查询学生表Student中所有班级。
 select distinct class from Student
 
---10
-select Course.开设学期,Teacher.name from Course,Teacher
-where Course.Cname='xxxxx' and Course.Cno=Teacher.Cno
 
---11
-select Course.name,Score.Grade,Teacher.name from Teacher,Course,Score
+--10查询某一门课程”XXXXXX”的开设学期和任课教师姓名。
+select Course.开设学期,Teacher.name from Course,Teacher
+where Course.Cname='xxxxx' and Course.tno=Teacher.tno
+
+
+--11查询学号为“XXXXXXX”的学生所修课程的课程名称、成绩、任课教师名。
+select Course.Cname,Score.Grade,Teacher.name from Teacher,Course,Score
 where Score.Sno='xxxxx' and Score.Cno=Course.Cno and Course.tno=Teacher.tno
 
---12  
+
+--12查询课程号为“XXXXXXX”的学生成绩不及格（<60）的名单、申请缓考或无资格的名单。
+  
 select Student.Sname from Student,Score
 where Cno='xxxxx' and Student.Sno=Score.Sno and (Score.Grade is NULL or Score.Grade<60)
 
---13
+
+--13查询课程号为“XXXXXXX”的学生中所有姓张的男学生学号。
 select Student.Sname from Student,Score
 where Score.Cno='xxxxx' and Student.Ssex='男' and substring(Student.Sname,1,1)='张'
 
---14
+
+--14查询课程号为“XXXXXXX”的学生所有参加考试的学生名单。
 select Student.Sname from Student,Score
 where Score.Cno='xxxxx' and Score.Grade>0
 
---15
-select 
+
+--15先按课程号排序再按学号排序输出全部学生选课表信息。
+select * from Score
+order by Cno,Sno
+
+
+--16查询教师号为“XXXXX”的姓名及所有承担课程情况的信息。
+select * from Course
+where Course.tno='xxxxx'
+
+
+--17查询教师姓名为“XXXXX”在第“YYYY”学期承担“ZZZZZ”课程中某个班级学生名单。
+select Student.Sname from Student,Score,Course,Teacher
+where Student.Sno=Score.Sno and Score.Cno=Course.Cno and Course.tno=Teacher.tno and Teacher.name='XXXXX' and Course.开设学期='YYYY' and Course.Cname='ZZZZZ'
+
+
+--18查询课程号为“XXXXXX“成绩为良好以上的（>=80）的学生名单。
+select Student.Sname from Student,Score
+where Student.Sno=Score.Sno and Score.Sno='xxxxx' and Score.grade>=80
+
+
+--19查询哪些课程是由教授职称的老师承担教学任务的。
+select Course.Cname from Course,Teacher
+where Course.tno=Teacher.tno and Teacher.prof='教授'
+
+
+--20查询哪些部门的教师承担某一班级的教学任务。
+select Teacher.depart,Teacher.name from Teacher,Course,Score,Student
+where Teacher.tno=Course.tno and Course.Cno=Score.Cno and Score.Sno=Student.Sno and Student.class='xxx'
+
+
+--21列出每个学生所有课程中自己最高成绩的课程信息。
+select * from Score outera
+where Grade=(select max(Grade) from Score innera where outera.Sno=innera.Sno)
+
+
+--22列出哪些部门还没有承担教学任务的教师信息。
+select * from Teacher
+where tno not in(select tno from Course)
+
+
+--23统计出生年份为“XXXX“的女学生人数。
+select count(Sno) from Student
+where year(birthday)=1111 and Ssex='女'
+
+
+--24求承担课程名为“XXXXXXX“教学的教师中最高薪酬。
+select max(Teacher.salary) from Teacher,Course
+where Teacher.tno=Course.tno and Course.Cname='xxxxx'
+
+
+--25求某一班级学生的所有课程平均成绩（缓考和无资格者不计）。
+select avg(Score.Grade) from Score,Student
+where Score.Sno=Student.Sno and Student.class='xxxx' and Score.考试状态 in('正常','旷考')
+
+
+--26求至少有5位教师的每个部门的平均薪酬。
+select avg(salary) from Teacher
+group by depart
+having count(*)>=5
+
+
+--27列出教师全部记录并计算各部门的平均薪酬和薪酬小计，最后给出全体教师的平均薪酬和薪酬总和。
+select * from Teacher
+order by depart
+compute avg(salary),sum(salary) by depart
+compute avg(salary),sum(salary)
+-#sql server 2012 had deleted COMPUTE
+
+
+--28因缓考将某一班级课程号为“XXXXXX”的学生成绩改为空值。
+update Score set Grade=NULL 
+where Score.Cno='XXXXX'
+
+
+--29将承担某一课程的所有教师薪酬提高5%。
+update Teacher set salary=salary*(1+0.05) 
+where Teacher.tno in(select tno from Course where Cname='xxxxx')
+
+
+--30在学生选课表上建立学号和课程号的普通索引，均按升序。
+create index sup_SnoCno on Score(Sno,Cno)
+
+
+--31查询某一门课程所有先修课程（限定2门）中成绩不及格学生的名单。
+select Student.Sname from Student,Score,Course
+where Student.Sno=Score.Sno and Score.Cno=Course.Cno 
+and Score.Grade<60 and Course.Cno in(select x.Cno from Course x,Course y where x.Cno=y.Cpno and y.Cname='xxxx' )
+
