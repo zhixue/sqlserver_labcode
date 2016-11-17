@@ -183,5 +183,5 @@ create index sup_SnoCno on Score(Sno,Cno)
 --31查询某一门课程所有先修课程（限定2门）中成绩不及格学生的名单。
 select Student.Sname from Student,Score,Course
 where Student.Sno=Score.Sno and Score.Cno=Course.Cno 
-and Score.Grade<60 and Course.Cno in(select x.Cno from Course x,Course y where x.Cno=y.Cpno and y.Cname='xxxx' )
+and Score.Grade<60 and Course.Cno in(select x.Cno from Course x,Course y where x.Cno=y.Cpno and y.Cno='xxxx' )
 
